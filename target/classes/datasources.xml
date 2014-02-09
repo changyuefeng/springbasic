@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 	xmlns="http://www.springframework.org/schema/beans"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:p="http://www.springframework.org/schema/p"
+          xmlns:tx="http://www.springframework.org/schema/tx"
+          xmlns:context="http://www.springframework.org/schema/context"
+          xsi:schemaLocation="
+			http://www.springframework.org/schema/beans 
+			http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+			http://www.springframework.org/schema/tx 
+			http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	   		">
+
+     <context:component-scan base-package="com.evilboyjava.springbasic"/>
+    <!-- 定义jdbc配置信息路径 -->
+    <context:property-placeholder location="mysqldatabase.properties" />
+
+    <!-- 使用annotation定义事务 -->
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+    <!-- 数据源配置,使用c3p0数据库连接池 -->
+    <bean id="mysqldataSource" class="org.apache.commons.dbcp.BasicDataSource"
+          destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName}" />
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="initialSize" value="2" />
+        <property name="maxActive" value="5" />
+        <!-- 最大空闲值.当经过一个高峰时间后，连接池可以慢慢将已经用不到的连接慢慢释放一部分，一直减少到maxIdle为止 -->
+        <property name="maxIdle" value="2" />
+        <!--  最小空闲值.当空闲的连接数少于阀值时，连接池就会预申请去一些连接，以免洪峰来时来不及申请 -->
+        <property name="minIdle" value="1" />
+    </bean>
+
+
+    <!--
+          采用注解方式来配置事务。针对数据源的事务管理器
+    ，把我们定义的数据源注入到DataSourceTransactionManager类的属性dataSource中
+    -->
+    <!-- See http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/transaction.html -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"
+          p:dataSource-ref="mysqldataSource" />
+
+    <bean id="jdbcTemplate"
+          class="org.springframework.jdbc.core.simple.SimpleJdbcTemplate">
+        <constructor-arg ref="mysqldataSource" />
+    </bean>
+</beans>
